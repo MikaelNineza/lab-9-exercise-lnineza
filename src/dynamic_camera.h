@@ -41,12 +41,36 @@ struct DynamicCamera {
         // collect statistics on the player position and velocity in (normalized, if you like)
         // window coordinates. Compute lookAhead distance in world coords, adjusting for
         // if the player is moving left or right.
+        float posPercent = camera.worldToWindowPercentDist(trackedPosWorld - cameraUnadjustedCenter).x + 0.5f;
+        float lookWorld = camera.windowPercentToWorldDist({lookAhead, 0.f}).x;
+        if (trackedVelocityWorld.x < 0) {
+            lookWorld = -lookWorld;
+        } else if (trackedVelocityWorld.x == 0) {
+            lookWorld = 0.f;
+        }
         // Now update lookAhead state using an EMA over its previous state and the lookAhead world
         // vector. Then determine if the player is in the dead zone, soft rejection zone, or hard
         // rejection zone. For each, perform EMA on the delta of the camera displacement (ignoring
-        // lookahead) appropriately. Next,
+        // lookahead) appropriately.
+        lookaheadState = alpha * lookWorld + (1.f - alpha) * lookaheadState;
+        float deltaPercent = 0.f;
+        if (posPercent < softZoneX.min) {
+            deltaPercent = posPercent - softZoneX.min;
+        } else if (posPercent > softZoneX.max) {
+            deltaPercent = posPercent - softZoneX.max;
+        } else if (posPercent < deadZoneX.min) {
+            deltaPercent = alpha * (posPercent - deadZoneX.min);
+        } else if (posPercent > deadZoneX.max) {
+            deltaPercent = alpha * (posPercent - deadZoneX.max);
+        }
+        // Next,
         // set the camera center by offsetting the cameraUnadjustedCenter, combining lookAhead.
         // Finally update cameraUnadjustedCenter, but without lookahead.
+        float deltaWorld = camera.windowPercentToWorldDist({deltaPercent, 0}).x;
+        sf::Vector2f updatedCameraCenter = cameraUnadjustedCenter + sf::Vector2f{deltaWorld, 0};
+        camera.setCameraCenter(updatedCameraCenter + sf::Vector2f{lookaheadState, 0.f});
+        cameraUnadjustedCenter = updatedCameraCenter;
+
     }
 
     float alpha;  // alpha to use for damping of camera position, *as well as* for smoothing of
