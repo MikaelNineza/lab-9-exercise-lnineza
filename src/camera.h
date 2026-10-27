@@ -89,11 +89,11 @@ public:
     };
 
     sf::Vector2f windowPercentToWorldDist(const sf::Vector2f& vWindowPercent) {
-        return {};
+        return windowToWorldDist(vWindowPercent * mWindowSize);
     };
 
     sf::Vector2f worldToWindowPercentDist(const sf::Vector2f& vWorld) {
-        return {};
+        return windowToWorldDist(vWorld) / mWindowSize;
     };
 
     float windowToWorldDist(float vWindow) {
