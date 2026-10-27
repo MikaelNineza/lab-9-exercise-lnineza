@@ -93,15 +93,15 @@ public:
     };
 
     sf::Vector2f worldToWindowPercentDist(const sf::Vector2f& vWorld) {
-        return windowToWorldDist(vWorld) / mWindowSize;
+        return worldToWindowDist(vWorld) / mWindowSize;
     };
 
     float windowToWorldDist(float vWindow) {
-        return 0.f;
+        return vWindow * mWorldUnitsPerPixel;
     };
 
     float worldToWindowDist(float vWorld) {
-        return 0.f;
+        return vWorld / mWorldUnitsPerPixel;
     };
 
 private:
